@@ -10,6 +10,8 @@
 
 const int GAMEBOARD_SIZE = 3;
 const int GAMEBOARD_ROW_SIZE = 3;
+const char PLAYER_1_MARKER = 'X';
+const char PLAYER_2_MARKER = 'O';
 
 //////////////////////////////////////////////////////////////
 // TYPE DEFINITIONS //////////////////////////////////////////
@@ -42,6 +44,9 @@ int main() {
     // Declare the players
     Player player1;
     Player player2;
+
+    // Declare the current player.
+    int currentPlayer = 1; 
 
     // Declare game board
     GameBoard gameboard = {
@@ -81,10 +86,12 @@ void initialSetup(Player* player1, Player* player2) {
     printf("Enter the name of player 1: ");
 
     scanf("%s", player1->name);
+    player1->id = 1;
 
     printf("\nEnter the name of player 2: ");
 
     scanf("%s", player2->name);
+    player2->id = 2;
 
     printf("------------------------------------------\n");
 
@@ -103,8 +110,15 @@ void displayGame(GameBoard gameboard) {
     }
 }
 
-
 //TODO Check if player won after play
+int checkIfWon(GameBoard gameboard, int playerId) {
+
+    char goal = playerId == 1 ? PLAYER_1_MARKER : PLAYER_2_MARKER;
+
+
+}
 
 //TODO Ask for player to make a play
 
+
+//TODO Check if can still play (could be a tie)
