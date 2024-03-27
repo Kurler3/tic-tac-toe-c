@@ -3,6 +3,7 @@
 //////////////////////////////////////////////////////////////
 
 #include<stdlib.h>
+#include<stdio.h>
 
 //////////////////////////////////////////////////////////////
 // CONSTANTS /////////////////////////////////////////////////
@@ -35,6 +36,12 @@ void initialSetup(Player* player1, Player* player2);
 
 void displayGame(GameBoard gameboard);
 
+int canStillPlay(GameBoard gameboard);
+
+int checkIfWon(GameBoard gameboard, int playerId);
+
+int makePlay(GameBoard gameboard, int playerId);
+
 //////////////////////////////////////////////////////////////
 // MAIN FUNCTION /////////////////////////////////////////////
 //////////////////////////////////////////////////////////////  
@@ -57,6 +64,56 @@ int main() {
 
     // Initial setup
     initialSetup(&player1, &player2);
+
+    int winner = 0;
+
+    while(!winner) {
+
+        // Display the game
+        displayGame(gameboard);
+
+        // Ask for current player to make a move
+        int chosenSlot = makePlay(gameboard, currentPlayer);
+
+
+        if(chosenSlot > 3) {
+            chosenSlot-= 3;
+        }
+
+        int row = chosenSlot % GAMEBOARD_SIZE;
+
+        // Change slot in gameboard
+        gameboard[row][chosenSlot] = currentPlayer == 1 ? PLAYER_1_MARKER : PLAYER_2_MARKER;
+
+        // Check if won
+        int hasOwn = checkIfWon(gameboard, currentPlayer);
+
+        if(hasOwn) {
+            winner = currentPlayer;
+            break;
+        }
+
+        // Check if is a tie
+        int isNotTie = canStillPlay(gameboard);
+
+        if(!isNotTie) {
+            winner = 3;
+            break;
+        }
+
+        // Change the current player
+        if(currentPlayer == 1) {
+            currentPlayer = 2;
+        } else {
+            currentPlayer = 1;
+        }
+    }
+
+    if(winner == 3) {
+        printf("It's a tie!\n");
+    } else {
+        printf("Player %d won!\n", winner);
+    }
 
     // Loop until game ends
     displayGame(gameboard);
@@ -110,15 +167,99 @@ void displayGame(GameBoard gameboard) {
     }
 }
 
-//TODO Check if player won after play
+// Check if player won after play
 int checkIfWon(GameBoard gameboard, int playerId) {
 
     char goal = playerId == 1 ? PLAYER_1_MARKER : PLAYER_2_MARKER;
 
+    //////////////////////////
+    // Check rows and cols ///
+    //////////////////////////
 
+    // For each row => check if the entire row is this thang
+    for(int i = 0; i < GAMEBOARD_SIZE; i++) {
+        
+        // Check row
+        if(gameboard[i][0] == goal && gameboard[i][1] == goal && gameboard[i][2] == goal) {
+            return 1;
+        }
+
+        // Check column
+        if(gameboard[0][i] == goal && gameboard[1][i] == goal && gameboard[2][i] == goal) {
+            return 1;
+        }
+
+    }
+
+    ////////////////////////
+    // Check diagonaly /////
+    ////////////////////////
+    
+    // Check top left to bottom right
+    if(gameboard[0][0] == goal && gameboard[1][1] == goal && gameboard[2][2] == goal) {
+        return 1;
+    }
+
+    // Bottom left to top right
+    if(gameboard[2][0] == goal && gameboard[1][1] == goal && gameboard[0][2] == goal) {
+        return 1;
+    }
+
+
+    return 0;
 }
 
-//TODO Ask for player to make a play
+// Ask for player to make a play
+int makePlay(GameBoard gameboard, int playerId) {
 
+    // Print help
+    printf("Player %d please choose a slot: ", playerId);
 
-//TODO Check if can still play (could be a tie)
+    int chosenSlot = 0;
+    int hasValidChoice = 0;
+
+    // While input is not valid => keep asking for input
+    while(!hasValidChoice) {
+
+        scanf("%d", &chosenSlot);
+
+        if(chosenSlot < 1 || chosenSlot > 9) {
+            printf("Please enter a valid slot number: ");
+            continue;
+        }
+
+        chosenSlot -= 1;
+
+        int normalizedSlot = chosenSlot;
+
+        if(normalizedSlot > 2) {
+            normalizedSlot-= 3;
+        }
+
+        int row = chosenSlot % GAMEBOARD_SIZE;    
+
+        printf("You chose slot %d\n on row %d", normalizedSlot + 1, row);
+
+        if(gameboard[row][normalizedSlot] != '-') {
+            printf("Please enter a valid slot number: ");
+            continue;
+        }
+     
+        hasValidChoice = 1;
+    }
+
+    return chosenSlot;
+}
+
+// Check if can still play (could be a tie)
+int canStillPlay(GameBoard gameboard) {
+    int occupiedSlots = 0;
+    for(int i = 0; i < GAMEBOARD_SIZE; i++) {
+        for(int j = 0; j < GAMEBOARD_ROW_SIZE; j++) {
+            if(gameboard[i][j] != '-') {
+                occupiedSlots++;
+            }
+        }
+    }
+    return occupiedSlots < 9;
+}
