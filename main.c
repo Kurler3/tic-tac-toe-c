@@ -40,7 +40,7 @@ int canStillPlay(GameBoard gameboard);
 
 int checkIfWon(GameBoard gameboard, int playerId);
 
-int makePlay(GameBoard gameboard, int playerId);
+int* makePlay(GameBoard gameboard, int playerId);
 
 //////////////////////////////////////////////////////////////
 // MAIN FUNCTION /////////////////////////////////////////////
@@ -73,17 +73,10 @@ int main() {
         displayGame(gameboard);
 
         // Ask for current player to make a move
-        int chosenSlot = makePlay(gameboard, currentPlayer);
-
-
-        if(chosenSlot > 3) {
-            chosenSlot-= 3;
-        }
-
-        int row = chosenSlot % GAMEBOARD_SIZE;
+        int* chosenSlots = makePlay(gameboard, currentPlayer);
 
         // Change slot in gameboard
-        gameboard[row][chosenSlot] = currentPlayer == 1 ? PLAYER_1_MARKER : PLAYER_2_MARKER;
+        gameboard[chosenSlots[0]][chosenSlots[1]] = currentPlayer == 1 ? PLAYER_1_MARKER : PLAYER_2_MARKER;
 
         // Check if won
         int hasOwn = checkIfWon(gameboard, currentPlayer);
@@ -109,14 +102,14 @@ int main() {
         }
     }
 
+    // Display the game
+    displayGame(gameboard);
+
     if(winner == 3) {
         printf("It's a tie!\n");
     } else {
-        printf("Player %d won!\n", winner);
+        printf("%s won!\n", winner == 1 ? player1.name : player2.name);
     }
-
-    // Loop until game ends
-    displayGame(gameboard);
 
     return 0;
 }
@@ -157,6 +150,7 @@ void initialSetup(Player* player1, Player* player2) {
 
 // Display game
 void displayGame(GameBoard gameboard) {
+    printf("\n------------------------------------------\n");
     for(int i = 0; i < GAMEBOARD_SIZE; i++) {
         printf("| ");
         for(int j = 0; j < GAMEBOARD_ROW_SIZE; j++) {
@@ -165,6 +159,7 @@ void displayGame(GameBoard gameboard) {
         printf(" |");
         printf("\n\n");
     }
+     printf("------------------------------------------\n");
 }
 
 // Check if player won after play
@@ -210,13 +205,14 @@ int checkIfWon(GameBoard gameboard, int playerId) {
 }
 
 // Ask for player to make a play
-int makePlay(GameBoard gameboard, int playerId) {
+int* makePlay(GameBoard gameboard, int playerId) {
 
     // Print help
     printf("Player %d please choose a slot: ", playerId);
 
     int chosenSlot = 0;
     int hasValidChoice = 0;
+    int* slots = (int*)malloc(sizeof(int));
 
     // While input is not valid => keep asking for input
     while(!hasValidChoice) {
@@ -231,14 +227,14 @@ int makePlay(GameBoard gameboard, int playerId) {
         chosenSlot -= 1;
 
         int normalizedSlot = chosenSlot;
-
+        int row;
+        
         if(normalizedSlot > 2) {
-            normalizedSlot-= 3;
-        }
-
-        int row = chosenSlot % GAMEBOARD_SIZE;    
-
-        printf("You chose slot %d\n on row %d", normalizedSlot + 1, row);
+            row = chosenSlot % GAMEBOARD_SIZE;
+            normalizedSlot-= (3 * row);
+        } else {
+            row = 0;
+        }    
 
         if(gameboard[row][normalizedSlot] != '-') {
             printf("Please enter a valid slot number: ");
@@ -246,9 +242,12 @@ int makePlay(GameBoard gameboard, int playerId) {
         }
      
         hasValidChoice = 1;
+
+        slots[0] = row;
+        slots[1] = normalizedSlot;
     }
 
-    return chosenSlot;
+    return slots;
 }
 
 // Check if can still play (could be a tie)
